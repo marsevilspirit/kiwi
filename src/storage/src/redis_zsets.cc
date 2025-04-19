@@ -165,12 +165,12 @@ Status Redis::ZPopMin(const Slice& key, const int64_t count, std::vector<ScoreMe
 Status Redis::ZAdd(const Slice& key, const std::vector<ScoreMember>& score_members, int32_t* ret) {
   *ret = 0;
   uint32_t statistic = 0;
-  std::unordered_set<std::string> unique;
+  std::unordered_map<std::string, double> ms_map;
   std::vector<ScoreMember> filtered_score_members;
-  for (const auto& sm : score_members) {
-    if (unique.find(sm.member) == unique.end()) {
-      unique.insert(sm.member);
-      filtered_score_members.push_back(sm);
+  for (auto it = score_members.rbegin(); it != score_members.rend(); ++it) {
+    auto& sm = *it;
+    if (ms_map.emplace(sm.member, sm.score).second) {
+      filtered_score_members.emplace_back(sm.score, sm.member);
     }
   }
 
